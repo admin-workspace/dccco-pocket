@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DCCCO Pocket</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Command 1: Remove arrows from number fields */
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .pocket-gradient {
+            background-image: linear-gradient(rgba(30, 64, 175, 0.8), rgba(29, 78, 216, 0.8)), url('image_59083f.jpg');
+            background-size: cover;
+            background-position: center;
+        }
+
+        .animate-pop {
+            animation: pop 0.3s ease-out;
+        }
+
+        @keyframes pop {
+            0% { transform: scale(0.95); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* Modal styling */
+        .modal-overlay {
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(4px);
+        }
+    </style>
+</head>
+<body class="min-h-screen pb-20">
+
+    <!-- Header -->
+    <header class="bg-white shadow-sm sticky top-0 z-10 px-4 py-4">
+        <div class="max-w-4xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <button onclick="toggleSettings()" class="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                </button>
+                <h1 class="text-lg md:text-xl font-bold text-blue-800">DCCCO Pocket</h1>
+            </div>
+            <div id="currentDate" class="text-xs md:text-sm font-medium text-gray-500"></div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-4xl mx-auto px-4 mt-6">
+        
+        <!-- Inspirational Quote Section -->
+        <section id="quoteSection" class="mb-6 italic text-center text-gray-600 animate-pop">
+            <p id="dailyQuote" class="text-sm font-medium"></p>
+        </section>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+            
+            <!-- Left Column: Controls & Tracking -->
+            <div class="space-y-6">
+                <!-- Daily Budget Input -->
+                <section class="glass-card p-6 rounded-2xl shadow-sm animate-pop">
+                    <label class="block text-sm font-semibold text-gray-600 mb-2 uppercase tracking-wider" id="budgetLabel">Food & Daily Budget (Auto-set to ₱250)</label>
+                    <div class="flex items-center gap-3">
+                        <span class="text-2xl font-bold text-gray-400">₱</span>
+                        <input type="number" id="dailyLimitInput" placeholder="250.00" 
+                            class="w-full text-3xl font-bold bg-transparent border-b-2 border-blue-100 focus:border-blue-500 outline-none pb-1 transition-all">
+                        <button onclick="setBudget()" class="bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-blue-700 active:scale-95 transition-all">
+                            Set
+                        </button>
+                    </div>
+                </section>
+
+                <!-- Stats Overview -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="glass-card p-4 rounded-2xl shadow-sm">
+                        <p class="text-xs text-gray-500 font-medium uppercase">Spent Today</p>
+                        <p id="totalSpent" class="text-xl font-bold text-red-500">₱0.00</p>
+                    </div>
+                    <div class="glass-card p-4 rounded-2xl shadow-sm border-l-4 border-green-500">
+                        <p class="text-xs text-gray-500 font-medium uppercase">Current Remainder</p>
+                        <p id="remainingBudget" class="text-xl font-bold text-green-600">₱0.00</p>
+                    </div>
+                </div>
+
+                <!-- Add Expense -->
+                <section class="glass-card p-6 rounded-2xl shadow-sm">
+                    <h2 class="text-sm font-semibold text-gray-600 mb-4 uppercase tracking-wider">Log Spending</h2>
+                    <div class="space-y-4">
+                        <input type="text" id="expenseName" placeholder="Expense description (e.g. Lunch)" class="w-full p-3 rounded-xl bg-gray-50 border border-gray-100 focus:ring-2 focus:ring-blue-500 outline-none">
+                        <div class="flex gap-2">
+                            <input type="number" id="expenseAmount" placeholder="Amount" class="w-full p-3 rounded-xl bg-gray-50 border border-gray-100 focus:ring-2 focus:ring-blue-500 outline-none">
+                            <button onclick="addExpense()" class="bg-gray-800 text-white px-6 py-3 rounded-xl font-bold active:scale-95 transition-all">+</button>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Right Column: Savings & History -->
+            <div class="space-y-6">
+                <!-- Pocket Envelope Section -->
+                <section class="pocket-gradient p-6 rounded-3xl shadow-xl text-white relative overflow-hidden">
+                    <div class="relative z-10">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h2 class="text-blue-100 text-xs font-bold uppercase tracking-widest">DCCCO Pocket Envelope</h2>
+                                <p class="text-3xl font-bold mt-1" id="pocketBalance">₱0.00</p>
+                            </div>
+                            <div class="bg-white/20 p-2 rounded-lg">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                                </svg>
+                            </div>
+                        </div>
+                        <p class="mt-4 text-xs text-blue-100 font-medium">Daily remainders kept here for your weekly DCCCO Savings deposit.</p>
+                        <div class="mt-4 flex flex-wrap gap-2">
+                            <button onclick="transferToPocket()" class="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg text-sm font-semibold transition-all">
+                                End Day & Save Remainder
+                            </button>
+                            <button onclick="clearPocket()" class="bg-red-500/40 hover:bg-red-500/60 px-4 py-2 rounded-lg text-sm font-semibold transition-all">
+                                Weekly Deposit Completed
+                            </button>
+                        </div>
+                    </div>
+                    <div class="absolute -right-10 -bottom-10 w-40 h-40 bg-white/10 rounded-full"></div>
+                </section>
+
+                <!-- Recent Expenses -->
+                <section>
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-sm font-bold text-gray-500 uppercase tracking-wider">Today's Usage</h2>
+                        <button onclick="clearToday()" class="text-xs text-red-500 font-semibold">Clear All</button>
+                    </div>
+                    <div id="expenseList" class="space-y-2">
+                        <!-- Expenses injected here -->
+                    </div>
+                </section>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Settings Menu Overlay -->
+    <div id="settingsMenu" class="fixed inset-0 z-50 hidden">
+        <div class="modal-overlay absolute inset-0" onclick="toggleSettings()"></div>
+        <div class="absolute left-0 top-0 bottom-0 w-80 bg-white shadow-2xl p-6 animate-pop">
+            <div class="flex justify-between items-center mb-8">
+                <h2 class="text-xl font-bold text-gray-800">Settings</h2>
+                <button onclick="toggleSettings()" class="p-2 text-gray-400 hover:text-gray-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="space-y-6">
+                <!-- Command 1: Added Monthly Report Button in Menu -->
+                <button onclick="toggleWeeklyReport()" class="w-full flex items-center justify-between p-4 bg-blue-50 rounded-2xl text-blue-700 font-bold hover:bg-blue-100 transition-colors">
+                    <div class="flex items-center gap-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                        </svg>
+                        <span>Monthly Report</span>
+                    </div>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                </button>
+
+                <div>
+                    <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Default Food Budget</label>
+                    <div class="flex items-center gap-2">
+                        <span class="text-gray-600">₱</span>
+                        <input type="number" id="settingAutoBudget" class="w-full p-2 border-b-2 border-gray-100 outline-none focus:border-blue-500 text-lg font-bold" value="250">
+                    </div>
+                    <p class="text-[10px] text-gray-400 mt-1">This is your automatic daily allowance.</p>
+                </div>
+
+                <div class="pt-6 border-t border-gray-100">
+                    <button onclick="saveSettings()" class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold shadow-lg shadow-blue-200 active:scale-95 transition-all">
+                        Save Preferences
+                    </button>
+                </div>
+
+                <div class="pt-4">
+                    <button onclick="resetAllData()" class="w-full border border-red-100 text-red-500 py-3 rounded-xl font-bold hover:bg-red-50 active:scale-95 transition-all">
+                        Reset All App Data
+                    </button>
+                </div>
+            </div>
+
+            <div class="absolute bottom-10 left-6 right-6 text-center">
+                <p class="text-xs text-gray-400">DCCCO Pocket v1.5</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Monthly/Weekly Report Overlay -->
+    <div id="weeklyReportOverlay" class="fixed inset-0 z-[60] hidden">
+        <div class="modal-overlay absolute inset-0" onclick="toggleWeeklyReport()"></div>
+        <div class="absolute inset-4 md:inset-x-auto md:left-1/2 md:-translate-x-1/2 md:w-[500px] bg-white rounded-3xl shadow-2xl overflow-hidden animate-pop flex flex-col">
+            <div class="p-6 bg-blue-800 text-white flex justify-between items-center">
+                <div>
+                    <h2 class="text-xl font-bold">Monthly Performance</h2>
+                    <p class="text-xs text-blue-200">Last 30 Days of Discipline</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <!-- Command 1: Download Report Button -->
+                    <button onclick="downloadReport()" class="p-2 hover:bg-blue-700 rounded-full" title="Download Report">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        </svg>
+                    </button>
+                    <button onclick="toggleWeeklyReport()" class="p-2 hover:bg-blue-700 rounded-full">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="flex-1 overflow-y-auto p-6 no-scrollbar space-y-6">
+                <!-- Summary Card -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-blue-50 p-4 rounded-2xl">
+                        <p class="text-[10px] uppercase font-bold text-blue-400">Total Saved (30d)</p>
+                        <p id="reportTotalSaved" class="text-xl font-bold text-blue-700">₱0.00</p>
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded-2xl">
+                        <p class="text-[10px] uppercase font-bold text-gray-400">Total Spent (30d)</p>
+                        <p id="reportTotalSpent" class="text-xl font-bold text-gray-700">₱0.00</p>
+                    </div>
+                </div>
+
+                <!-- History List -->
+                <div class="space-y-3">
+                    <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest">30-Day History</h3>
+                    <div id="weeklyHistoryList" class="space-y-2">
+                        <!-- History items injected here -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-6 border-t border-gray-100 bg-gray-50">
+                <p class="text-[10px] text-center text-gray-400 italic">Tracking your monthly progress helps you see your consistency in DCCCO savings.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- UI Message Overlay -->
+    <div id="messageBox" class="fixed bottom-10 left-1/2 -translate-x-1/2 bg-gray-900 text-white px-6 py-3 rounded-full text-sm font-medium shadow-2xl opacity-0 pointer-events-none transition-all duration-300 z-50">
+    </div>
+
+    <script>
+        const quotes = [
+            "\"Discipline is choosing between what you want now and what you want most.\" — Abraham Lincoln",
+            "\"Don't save what is left after spending; spend what is left after saving.\" — Warren Buffett",
+            "\"Financial peace isn't the acquisition of stuff. It's learning to live on less than you make.\" — Dave Ramsey",
+            "\"The goal isn't more money. The goal is living life on your terms.\" — Chris Brogan",
+            "\"Small amounts saved daily lead to massive dreams achieved eventually.\"",
+            "\"A budget is telling your money where to go instead of wondering where it went.\" — Dave Ramsey",
+            "\"Self-discipline is the bridge between goals and accomplishment.\" — Jim Rohn",
+            "\"Every peso saved is a step closer to your dream life.\"",
+            "\"Beware of little expenses; a small leak will sink a great ship.\" — Benjamin Franklin"
+        ];
+
+        let state = {
+            dailyBudget: 250,
+            expenses: [],
+            pocketEnvelope: 0,
+            lastDate: "",
+            autoSetAmount: 250,
+            history: [] 
+        };
+
+        window.onload = () => {
+            const savedData = localStorage.getItem('dccco_budget_data');
+            if (savedData) {
+                state = JSON.parse(savedData);
+                if (!state.autoSetAmount) state.autoSetAmount = 250;
+                if (!state.history) state.history = [];
+            }
+
+            const dayOfYear = Math.floor((new Date() - new Date(new Date().getFullYear(), 0, 0)) / 86400000);
+            document.getElementById('dailyQuote').innerText = quotes[dayOfYear % quotes.length];
+
+            const today = new Date().toDateString();
+            if (state.lastDate !== today && state.lastDate !== "") {
+                state.dailyBudget = state.autoSetAmount; 
+                state.expenses = [];
+                state.lastDate = today;
+                saveData();
+                showMessage(`New day! Budget auto-set to ₱${state.autoSetAmount.toFixed(2)}`);
+            } else if (state.lastDate === "") {
+                state.lastDate = today;
+            }
+
+            updateDate();
+            render();
+        };
+
+        function updateDate() {
+            const now = new Date();
+            const options = { weekday: 'long', month: 'short', day: 'numeric' };
+            document.getElementById('currentDate').innerText = now.toLocaleDateString('en-PH', options);
+        }
+
+        function saveData() {
+            localStorage.setItem('dccco_budget_data', JSON.stringify(state));
+        }
+
+        function showMessage(text) {
+            const box = document.getElementById('messageBox');
+            box.innerText = text;
+            box.classList.remove('opacity-0', 'pointer-events-none');
+            box.classList.add('opacity-100');
+            setTimeout(() => {
+                box.classList.remove('opacity-100');
+                box.classList.add('opacity-0', 'pointer-events-none');
+            }, 2500);
+        }
+
+        function toggleSettings() {
+            const menu = document.getElementById('settingsMenu');
+            menu.classList.toggle('hidden');
+            if (!menu.classList.contains('hidden')) {
+                document.getElementById('settingAutoBudget').value = state.autoSetAmount;
+            }
+        }
+
+        function toggleWeeklyReport() {
+            const report = document.getElementById('weeklyReportOverlay');
+            const settings = document.getElementById('settingsMenu');
+            
+            if (!report.classList.contains('hidden')) {
+                report.classList.add('hidden');
+            } else {
+                settings.classList.add('hidden');
+                report.classList.remove('hidden');
+                renderWeeklyReport();
+            }
+        }
+
+        function downloadReport() {
+            if (state.history.length === 0) {
+                showMessage("No history to download yet.");
+                return;
+            }
+
+            let reportText = "DCCCO SAVINGS PERFORMANCE REPORT (Last 30 Days)\n";
+            reportText += "===============================================\n\n";
+            
+            let totalSaved = 0;
+            let totalSpent = 0;
+
+            state.history.forEach(item => {
+                totalSaved += item.saved;
+                totalSpent += item.spent;
+                reportText += `${item.date}: Spent ₱${item.spent.toFixed(2)} | Saved ₱${item.saved.toFixed(2)}\n`;
+            });
+
+            reportText += "\n-----------------------------------------------\n";
+            reportText += `TOTAL SPENT: ₱${totalSpent.toFixed(2)}\n`;
+            reportText += `TOTAL SAVED FOR DCCCO: ₱${totalSaved.toFixed(2)}\n`;
+            reportText += "===============================================\n";
+            reportText += "Generated by DCCCO Pocket App";
+
+            const blob = new Blob([reportText], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Savings_Report_${new Date().toISOString().split('T')[0]}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showMessage("Report downloaded successfully!");
+        }
+
+        function saveSettings() {
+            const newAuto = parseFloat(document.getElementById('settingAutoBudget').value);
+            if (newAuto >= 0) {
+                state.autoSetAmount = newAuto;
+                saveData();
+                render();
+                toggleSettings();
+                showMessage("Settings saved successfully!");
+            }
+        }
+
+        function resetAllData() {
+            if (confirm("WARNING: This will delete ALL your budget data, expenses, and savings history. Proceed?")) {
+                localStorage.removeItem('dccco_budget_data');
+                location.reload();
+            }
+        }
+
+        function setBudget() {
+            const val = parseFloat(document.getElementById('dailyLimitInput').value);
+            if (val >= 0) {
+                state.dailyBudget = val;
+                saveData();
+                render();
+                showMessage("Daily budget updated!");
+            }
+        }
+
+        function addExpense() {
+            const name = document.getElementById('expenseName').value.trim();
+            const amount = parseFloat(document.getElementById('expenseAmount').value);
+
+            if (name && amount > 0) {
+                state.expenses.unshift({
+                    id: Date.now(),
+                    name: name,
+                    amount: amount,
+                    time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                });
+                
+                document.getElementById('expenseName').value = '';
+                document.getElementById('expenseAmount').value = '';
+                saveData();
+                render();
+            } else {
+                showMessage("Please enter valid details");
+            }
+        }
+
+        function deleteExpense(id) {
+            state.expenses = state.expenses.filter(e => e.id !== id);
+            saveData();
+            render();
+        }
+
+        function transferToPocket() {
+            const totalSpent = state.expenses.reduce((sum, e) => sum + e.amount, 0);
+            const remaining = state.dailyBudget - totalSpent;
+
+            if (remaining > 0 || totalSpent > 0) {
+                const record = {
+                    date: new Date().toLocaleDateString('en-PH', { month: 'short', day: 'numeric' }),
+                    spent: totalSpent,
+                    saved: remaining > 0 ? remaining : 0,
+                    id: Date.now()
+                };
+                
+                state.history.unshift(record);
+                if (state.history.length > 30) state.history.pop();
+
+                state.pocketEnvelope += record.saved;
+                state.expenses = [];
+                state.dailyBudget = state.autoSetAmount; 
+                document.getElementById('dailyLimitInput').value = '';
+                
+                saveData();
+                render();
+                showMessage(`₱${record.saved.toFixed(2)} moved to DCCCO Pocket!`);
+            } else {
+                showMessage("Nothing to save today.");
+            }
+        }
+
+        function clearPocket() {
+            if (confirm("Confirm that you have deposited your pocket balance to DCCCO Savings?")) {
+                state.pocketEnvelope = 0;
+                saveData();
+                render();
+                showMessage("Pocket cleared! Savings updated.");
+            }
+        }
+
+        function clearToday() {
+            state.expenses = [];
+            saveData();
+            render();
+        }
+
+        function renderWeeklyReport() {
+            const historyList = document.getElementById('weeklyHistoryList');
+            const totalSavedEl = document.getElementById('reportTotalSaved');
+            const totalSpentEl = document.getElementById('reportTotalSpent');
+            
+            historyList.innerHTML = '';
+            
+            let totalSaved = 0;
+            let totalSpent = 0;
+
+            if (state.history.length === 0) {
+                historyList.innerHTML = `<div class="text-center py-10 text-gray-400">No history logged yet.<br><span class="text-[10px]">History is created when you click "End Day".</span></div>`;
+            }
+
+            state.history.forEach(item => {
+                totalSaved += item.saved;
+                totalSpent += item.spent;
+
+                const row = document.createElement('div');
+                row.className = 'flex justify-between items-center p-3 bg-white border border-gray-100 rounded-xl';
+                row.innerHTML = `
+                    <div class="flex flex-col">
+                        <span class="text-xs font-bold text-gray-800">${item.date}</span>
+                        <span class="text-[10px] text-gray-400 uppercase">Daily Record</span>
+                    </div>
+                    <div class="flex gap-4 text-right">
+                        <div>
+                            <p class="text-[9px] text-gray-400 uppercase font-bold">Spent</p>
+                            <p class="text-xs font-bold text-red-500">₱${item.spent.toFixed(2)}</p>
+                        </div>
+                        <div>
+                            <p class="text-[9px] text-blue-400 uppercase font-bold">Saved</p>
+                            <p class="text-xs font-bold text-blue-600">₱${item.saved.toFixed(2)}</p>
+                        </div>
+                    </div>
+                `;
+                historyList.appendChild(row);
+            });
+
+            totalSavedEl.innerText = `₱${totalSaved.toLocaleString('en-PH', {minimumFractionDigits: 2})}`;
+            totalSpentEl.innerText = `₱${totalSpent.toLocaleString('en-PH', {minimumFractionDigits: 2})}`;
+        }
+
+        function render() {
+            const totalSpent = state.expenses.reduce((sum, e) => sum + e.amount, 0);
+            const remaining = state.dailyBudget - totalSpent;
+
+            document.getElementById('totalSpent').innerText = `₱${totalSpent.toLocaleString('en-PH', {minimumFractionDigits: 2})}`;
+            document.getElementById('remainingBudget').innerText = `₱${remaining.toLocaleString('en-PH', {minimumFractionDigits: 2})}`;
+            document.getElementById('pocketBalance').innerText = `₱${state.pocketEnvelope.toLocaleString('en-PH', {minimumFractionDigits: 2})}`;
+            document.getElementById('budgetLabel').innerText = `Food & Daily Budget (Auto-set to ₱${state.autoSetAmount})`;
+            
+            if (state.dailyBudget > 0) {
+                document.getElementById('dailyLimitInput').placeholder = state.dailyBudget.toFixed(2);
+            }
+
+            const list = document.getElementById('expenseList');
+            list.innerHTML = '';
+
+            if (state.expenses.length === 0) {
+                list.innerHTML = `<div class="text-center py-8 text-gray-400 text-sm">No expenses yet today</div>`;
+            }
+
+            state.expenses.forEach(e => {
+                const item = document.createElement('div');
+                item.className = 'glass-card p-4 rounded-xl flex justify-between items-center animate-pop';
+                item.innerHTML = `
+                    <div class="flex flex-col">
+                        <span class="font-bold text-gray-800">${e.name}</span>
+                        <span class="text-[10px] text-gray-400 uppercase font-bold">${e.time}</span>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <span class="font-bold text-gray-700">₱${e.amount.toFixed(2)}</span>
+                        <button onclick="deleteExpense(${e.id})" class="text-gray-300 hover:text-red-500 transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
+                    </div>
+                `;
+                list.appendChild(item);
+            });
+        }
+    </script>
+</body>
+</html>
