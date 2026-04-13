@@ -1,9 +1,21 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DCCCO Pocket</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#1e40af">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="DCCCO Pocket">
+    <meta name="description" content="Daily budget and savings tracker for DCCCO members.">
+    
+    <!-- Web Manifest -->
+    <link rel="manifest" href='data:application/manifest+json,{"name":"DCCCO Pocket","short_name":"DCCCO","start_url":".","display":"standalone","background_color":"#f3f4f6","theme_color":"#1e40af","icons":[{"src":"https://cdn-icons-png.flaticon.com/512/2489/2489756.png","sizes":"512x512","type":"image/png"}]}'>
+
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
@@ -14,7 +26,6 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* Command 1: Remove arrows from number fields */
         input::-webkit-outer-spin-button,
         input::-webkit-inner-spin-button {
             -webkit-appearance: none;
@@ -49,7 +60,6 @@
             display: none;
         }
 
-        /* Modal styling */
         .modal-overlay {
             background: rgba(0, 0, 0, 0.4);
             backdrop-filter: blur(4px);
@@ -58,7 +68,7 @@
 </head>
 <body class="min-h-screen pb-20">
 
-    <!-- Header -->
+    <!-- App Header -->
     <header class="bg-white shadow-sm sticky top-0 z-10 px-4 py-4">
         <div class="max-w-4xl mx-auto flex justify-between items-center">
             <div class="flex items-center gap-3">
@@ -73,32 +83,29 @@
         </div>
     </header>
 
-    <!-- Main Content -->
     <main class="max-w-4xl mx-auto px-4 mt-6">
-        
-        <!-- Inspirational Quote Section -->
+        <!-- Inspirational Quote -->
         <section id="quoteSection" class="mb-6 italic text-center text-gray-600 animate-pop">
             <p id="dailyQuote" class="text-sm font-medium"></p>
         </section>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
-            
-            <!-- Left Column: Controls & Tracking -->
+            <!-- Left Side: Spending Controls -->
             <div class="space-y-6">
-                <!-- Daily Budget Input -->
                 <section class="glass-card p-6 rounded-2xl shadow-sm animate-pop">
                     <label class="block text-sm font-semibold text-gray-600 mb-2 uppercase tracking-wider" id="budgetLabel">Food & Daily Budget (Auto-set to ₱250)</label>
                     <div class="flex items-center gap-3">
                         <span class="text-2xl font-bold text-gray-400">₱</span>
+                        <!-- Field made non-editable with readonly and cursor-default -->
                         <input type="number" id="dailyLimitInput" placeholder="250.00" 
-                            class="w-full text-3xl font-bold bg-transparent border-b-2 border-blue-100 focus:border-blue-500 outline-none pb-1 transition-all">
+                            readonly
+                            class="w-full text-3xl font-bold bg-transparent border-b-2 border-blue-100 focus:outline-none pb-1 transition-all cursor-default select-none">
                         <button onclick="setBudget()" class="bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-blue-700 active:scale-95 transition-all">
                             Set
                         </button>
                     </div>
                 </section>
 
-                <!-- Stats Overview -->
                 <div class="grid grid-cols-2 gap-4">
                     <div class="glass-card p-4 rounded-2xl shadow-sm">
                         <p class="text-xs text-gray-500 font-medium uppercase">Spent Today</p>
@@ -110,7 +117,6 @@
                     </div>
                 </div>
 
-                <!-- Add Expense -->
                 <section class="glass-card p-6 rounded-2xl shadow-sm">
                     <h2 class="text-sm font-semibold text-gray-600 mb-4 uppercase tracking-wider">Log Spending</h2>
                     <div class="space-y-4">
@@ -123,9 +129,8 @@
                 </section>
             </div>
 
-            <!-- Right Column: Savings & History -->
+            <!-- Right Side: Savings & History -->
             <div class="space-y-6">
-                <!-- Pocket Envelope Section -->
                 <section class="pocket-gradient p-6 rounded-3xl shadow-xl text-white relative overflow-hidden">
                     <div class="relative z-10">
                         <div class="flex justify-between items-start">
@@ -152,26 +157,22 @@
                     <div class="absolute -right-10 -bottom-10 w-40 h-40 bg-white/10 rounded-full"></div>
                 </section>
 
-                <!-- Recent Expenses -->
                 <section>
                     <div class="flex justify-between items-center mb-4">
                         <h2 class="text-sm font-bold text-gray-500 uppercase tracking-wider">Today's Usage</h2>
                         <button onclick="clearToday()" class="text-xs text-red-500 font-semibold">Clear All</button>
                     </div>
-                    <div id="expenseList" class="space-y-2">
-                        <!-- Expenses injected here -->
-                    </div>
+                    <div id="expenseList" class="space-y-2"></div>
                 </section>
             </div>
-
         </div>
     </main>
 
-    <!-- Settings Menu Overlay -->
+    <!-- Settings Sidebar -->
     <div id="settingsMenu" class="fixed inset-0 z-50 hidden">
         <div class="modal-overlay absolute inset-0" onclick="toggleSettings()"></div>
-        <div class="absolute left-0 top-0 bottom-0 w-80 bg-white shadow-2xl p-6 animate-pop">
-            <div class="flex justify-between items-center mb-8">
+        <div class="absolute left-0 top-0 bottom-0 w-80 bg-white shadow-2xl flex flex-col animate-pop">
+            <div class="p-6 flex justify-between items-center border-b border-gray-50">
                 <h2 class="text-xl font-bold text-gray-800">Settings</h2>
                 <button onclick="toggleSettings()" class="p-2 text-gray-400 hover:text-gray-600">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -179,15 +180,14 @@
                     </svg>
                 </button>
             </div>
-            
-            <div class="space-y-6">
-                <!-- Command 1: Added Monthly Report Button in Menu -->
+
+            <div class="flex-1 overflow-y-auto p-6 space-y-8 no-scrollbar">
                 <button onclick="toggleWeeklyReport()" class="w-full flex items-center justify-between p-4 bg-blue-50 rounded-2xl text-blue-700 font-bold hover:bg-blue-100 transition-colors">
                     <div class="flex items-center gap-3">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                         </svg>
-                        <span>Monthly Report</span>
+                        <span>Performance Report</span>
                     </div>
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
@@ -200,45 +200,39 @@
                         <span class="text-gray-600">₱</span>
                         <input type="number" id="settingAutoBudget" class="w-full p-2 border-b-2 border-gray-100 outline-none focus:border-blue-500 text-lg font-bold" value="250">
                     </div>
-                    <p class="text-[10px] text-gray-400 mt-1">This is your automatic daily allowance.</p>
                 </div>
 
                 <div class="pt-6 border-t border-gray-100">
-                    <button onclick="saveSettings()" class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold shadow-lg shadow-blue-200 active:scale-95 transition-all">
-                        Save Preferences
-                    </button>
+                    <button onclick="saveSettings()" class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold shadow-lg shadow-blue-200 transition-all">Save Preferences</button>
                 </div>
 
-                <div class="pt-4">
-                    <button onclick="resetAllData()" class="w-full border border-red-100 text-red-500 py-3 rounded-xl font-bold hover:bg-red-50 active:scale-95 transition-all">
-                        Reset All App Data
-                    </button>
+                <div class="pt-4 pb-12">
+                    <button onclick="showResetModal()" class="w-full border border-red-100 text-red-500 py-3 rounded-xl font-bold hover:bg-red-50 transition-all">Reset All App Data</button>
                 </div>
             </div>
 
-            <div class="absolute bottom-10 left-6 right-6 text-center">
-                <p class="text-xs text-gray-400">DCCCO Pocket v1.5</p>
+            <div class="p-6 text-center border-t border-gray-50 bg-gray-50/50">
+                <p class="text-xs text-gray-400">DCCCO Pocket v1.6.5 (PWA)</p>
             </div>
         </div>
     </div>
 
-    <!-- Monthly/Weekly Report Overlay -->
+    <!-- Savings Report -->
     <div id="weeklyReportOverlay" class="fixed inset-0 z-[60] hidden">
         <div class="modal-overlay absolute inset-0" onclick="toggleWeeklyReport()"></div>
         <div class="absolute inset-4 md:inset-x-auto md:left-1/2 md:-translate-x-1/2 md:w-[500px] bg-white rounded-3xl shadow-2xl overflow-hidden animate-pop flex flex-col">
             <div class="p-6 bg-blue-800 text-white flex justify-between items-center">
                 <div>
-                    <h2 class="text-xl font-bold">Monthly Performance</h2>
-                    <p class="text-xs text-blue-200">Last 30 Days of Discipline</p>
+                    <h2 class="text-xl font-bold">Savings Report</h2>
+                    <p class="text-xs text-blue-200">Weekly & Monthly Data</p>
                 </div>
                 <div class="flex items-center gap-2">
-                    <!-- Command 1: Download Report Button -->
-                    <button onclick="downloadReport()" class="p-2 hover:bg-blue-700 rounded-full" title="Download Report">
+                    <button onclick="downloadReport()" class="p-2 hover:bg-blue-700 rounded-full transition-colors" title="Download Report">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
                     </button>
-                    <button onclick="toggleWeeklyReport()" class="p-2 hover:bg-blue-700 rounded-full">
+                    <button onclick="toggleWeeklyReport()" class="p-2 hover:bg-blue-700 rounded-full transition-colors">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                         </svg>
@@ -247,48 +241,88 @@
             </div>
             
             <div class="flex-1 overflow-y-auto p-6 no-scrollbar space-y-6">
-                <!-- Summary Card -->
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="bg-blue-50 p-4 rounded-2xl">
-                        <p class="text-[10px] uppercase font-bold text-blue-400">Total Saved (30d)</p>
-                        <p id="reportTotalSaved" class="text-xl font-bold text-blue-700">₱0.00</p>
-                    </div>
-                    <div class="bg-gray-50 p-4 rounded-2xl">
-                        <p class="text-[10px] uppercase font-bold text-gray-400">Total Spent (30d)</p>
-                        <p id="reportTotalSpent" class="text-xl font-bold text-gray-700">₱0.00</p>
-                    </div>
-                </div>
-
-                <!-- History List -->
                 <div class="space-y-3">
-                    <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest">30-Day History</h3>
-                    <div id="weeklyHistoryList" class="space-y-2">
-                        <!-- History items injected here -->
+                    <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest">Weekly Performance (7d)</h3>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="bg-green-50 p-4 rounded-2xl border border-green-100">
+                            <p class="text-[10px] uppercase font-bold text-green-500 tracking-tight">Saved This Week</p>
+                            <p id="weekTotalSaved" class="text-xl font-bold text-green-700">₱0.00</p>
+                        </div>
+                        <div class="bg-orange-50 p-4 rounded-2xl border border-orange-100">
+                            <p class="text-[10px] uppercase font-bold text-orange-400 tracking-tight">Spent This Week</p>
+                            <p id="weekTotalSpent" class="text-xl font-bold text-orange-700">₱0.00</p>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <div class="p-6 border-t border-gray-100 bg-gray-50">
-                <p class="text-[10px] text-center text-gray-400 italic">Tracking your monthly progress helps you see your consistency in DCCCO savings.</p>
+                <div class="space-y-3">
+                    <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest">Monthly Summary (30d)</h3>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="bg-blue-50 p-4 rounded-2xl border border-blue-100">
+                            <p class="text-[10px] uppercase font-bold text-blue-400 tracking-tight">Total Saved</p>
+                            <p id="reportTotalSaved" class="text-xl font-bold text-blue-700">₱0.00</p>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                            <p class="text-[10px] uppercase font-bold text-gray-400 tracking-tight">Total Spent</p>
+                            <p id="reportTotalSpent" class="text-xl font-bold text-gray-700">₱0.00</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-3">
+                    <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest">Daily History Log</h3>
+                    <div id="weeklyHistoryList" class="space-y-2"></div>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- UI Message Overlay -->
-    <div id="messageBox" class="fixed bottom-10 left-1/2 -translate-x-1/2 bg-gray-900 text-white px-6 py-3 rounded-full text-sm font-medium shadow-2xl opacity-0 pointer-events-none transition-all duration-300 z-50">
+    <!-- Reset Confirmation Modal -->
+    <div id="resetModal" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-4">
+        <div class="modal-overlay absolute inset-0"></div>
+        <div class="glass-card w-full max-w-sm p-8 rounded-3xl shadow-2xl animate-pop relative z-10 text-center">
+            <div class="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+            </div>
+            <h3 class="text-xl font-bold text-gray-800 mb-2">Reset App Data?</h3>
+            <p class="text-sm text-gray-500 mb-8">This will permanently delete your budget settings, expense history, and pocket savings. This cannot be undone.</p>
+            <div class="flex flex-col gap-3">
+                <button onclick="proceedWithReset()" class="w-full bg-red-500 text-white py-4 rounded-2xl font-bold active:scale-95 transition-all">Yes, Reset Everything</button>
+                <button onclick="hideResetModal()" class="w-full bg-gray-100 text-gray-600 py-4 rounded-2xl font-bold active:scale-95 transition-all">Cancel</button>
+            </div>
+        </div>
     </div>
 
+    <div id="messageBox" class="fixed bottom-10 left-1/2 -translate-x-1/2 bg-gray-900 text-white px-6 py-3 rounded-full text-sm font-medium shadow-2xl opacity-0 pointer-events-none transition-all duration-300 z-50"></div>
+
     <script>
+        // PWA Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                const swCode = `
+                    self.addEventListener('install', (e) => {
+                        e.waitUntil(caches.open('dccco-pocket-v1').then((cache) => cache.addAll(['./'])));
+                    });
+                    self.addEventListener('fetch', (e) => {
+                        e.respondWith(caches.match(e.request).then((res) => res || fetch(e.request)));
+                    });
+                `;
+                const blob = new Blob([swCode], { type: 'application/javascript' });
+                const swUrl = URL.createObjectURL(blob);
+                navigator.serviceWorker.register(swUrl).catch(err => console.log('SW registration failed:', err));
+            });
+        }
+
         const quotes = [
             "\"Discipline is choosing between what you want now and what you want most.\" — Abraham Lincoln",
-            "\"Don't save what is left after spending; spend what is left after saving.\" — Warren Buffett",
-            "\"Financial peace isn't the acquisition of stuff. It's learning to live on less than you make.\" — Dave Ramsey",
-            "\"The goal isn't more money. The goal is living life on your terms.\" — Chris Brogan",
-            "\"Small amounts saved daily lead to massive dreams achieved eventually.\"",
-            "\"A budget is telling your money where to go instead of wondering where it went.\" — Dave Ramsey",
-            "\"Self-discipline is the bridge between goals and accomplishment.\" — Jim Rohn",
+            "\"Don't save what is left after spending; spend what is left after saving.\"",
+            "\"Small amounts saved daily lead to massive dreams eventually.\"",
+            "\"A budget is telling your money where to go instead of wondering where it went.\"",
+            "\"Self-discipline is the bridge between goals and accomplishment.\"",
             "\"Every peso saved is a step closer to your dream life.\"",
-            "\"Beware of little expenses; a small leak will sink a great ship.\" — Benjamin Franklin"
+            "\"Beware of little expenses; a small leak will sink a great ship.\""
         ];
 
         let state = {
@@ -373,35 +407,21 @@
                 showMessage("No history to download yet.");
                 return;
             }
-
-            let reportText = "DCCCO SAVINGS PERFORMANCE REPORT (Last 30 Days)\n";
-            reportText += "===============================================\n\n";
-            
-            let totalSaved = 0;
-            let totalSpent = 0;
-
+            let reportText = "DCCCO SAVINGS PERFORMANCE REPORT\n===============================\n\n";
+            let totalSaved = 0, totalSpent = 0;
             state.history.forEach(item => {
                 totalSaved += item.saved;
                 totalSpent += item.spent;
                 reportText += `${item.date}: Spent ₱${item.spent.toFixed(2)} | Saved ₱${item.saved.toFixed(2)}\n`;
             });
-
-            reportText += "\n-----------------------------------------------\n";
-            reportText += `TOTAL SPENT: ₱${totalSpent.toFixed(2)}\n`;
-            reportText += `TOTAL SAVED FOR DCCCO: ₱${totalSaved.toFixed(2)}\n`;
-            reportText += "===============================================\n";
-            reportText += "Generated by DCCCO Pocket App";
-
+            reportText += `\nTOTAL SPENT: ₱${totalSpent.toFixed(2)}\nTOTAL SAVED: ₱${totalSaved.toFixed(2)}\n===============================\nGenerated by DCCCO Pocket App`;
             const blob = new Blob([reportText], { type: 'text/plain' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
             a.download = `Savings_Report_${new Date().toISOString().split('T')[0]}.txt`;
-            document.body.appendChild(a);
             a.click();
-            document.body.removeChild(a);
             URL.revokeObjectURL(url);
-            
             showMessage("Report downloaded successfully!");
         }
 
@@ -412,15 +432,23 @@
                 saveData();
                 render();
                 toggleSettings();
-                showMessage("Settings saved successfully!");
+                showMessage("Settings saved!");
             }
         }
 
-        function resetAllData() {
-            if (confirm("WARNING: This will delete ALL your budget data, expenses, and savings history. Proceed?")) {
-                localStorage.removeItem('dccco_budget_data');
-                location.reload();
-            }
+        // Custom Reset Warning Logic
+        function showResetModal() {
+            document.getElementById('resetModal').classList.remove('hidden');
+            document.getElementById('settingsMenu').classList.add('hidden');
+        }
+
+        function hideResetModal() {
+            document.getElementById('resetModal').classList.add('hidden');
+        }
+
+        function proceedWithReset() {
+            localStorage.removeItem('dccco_budget_data');
+            location.reload();
         }
 
         function setBudget() {
@@ -436,7 +464,6 @@
         function addExpense() {
             const name = document.getElementById('expenseName').value.trim();
             const amount = parseFloat(document.getElementById('expenseAmount').value);
-
             if (name && amount > 0) {
                 state.expenses.unshift({
                     id: Date.now(),
@@ -444,13 +471,10 @@
                     amount: amount,
                     time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
                 });
-                
                 document.getElementById('expenseName').value = '';
                 document.getElementById('expenseAmount').value = '';
                 saveData();
                 render();
-            } else {
-                showMessage("Please enter valid details");
             }
         }
 
@@ -463,37 +487,31 @@
         function transferToPocket() {
             const totalSpent = state.expenses.reduce((sum, e) => sum + e.amount, 0);
             const remaining = state.dailyBudget - totalSpent;
-
             if (remaining > 0 || totalSpent > 0) {
                 const record = {
                     date: new Date().toLocaleDateString('en-PH', { month: 'short', day: 'numeric' }),
                     spent: totalSpent,
                     saved: remaining > 0 ? remaining : 0,
-                    id: Date.now()
+                    id: Date.now(),
+                    timestamp: Date.now()
                 };
-                
                 state.history.unshift(record);
                 if (state.history.length > 30) state.history.pop();
-
                 state.pocketEnvelope += record.saved;
                 state.expenses = [];
                 state.dailyBudget = state.autoSetAmount; 
-                document.getElementById('dailyLimitInput').value = '';
-                
                 saveData();
                 render();
-                showMessage(`₱${record.saved.toFixed(2)} moved to DCCCO Pocket!`);
-            } else {
-                showMessage("Nothing to save today.");
+                showMessage(`₱${record.saved.toFixed(2)} moved to Pocket!`);
             }
         }
 
         function clearPocket() {
-            if (confirm("Confirm that you have deposited your pocket balance to DCCCO Savings?")) {
+            if (confirm("Have you deposited your pocket balance to DCCCO Savings?")) {
                 state.pocketEnvelope = 0;
                 saveData();
                 render();
-                showMessage("Pocket cleared! Savings updated.");
+                showMessage("Pocket cleared!");
             }
         }
 
@@ -504,88 +522,60 @@
         }
 
         function renderWeeklyReport() {
-            const historyList = document.getElementById('weeklyHistoryList');
-            const totalSavedEl = document.getElementById('reportTotalSaved');
-            const totalSpentEl = document.getElementById('reportTotalSpent');
+            const list = document.getElementById('weeklyHistoryList');
+            const wSaved = document.getElementById('weekTotalSaved');
+            const wSpent = document.getElementById('weekTotalSpent');
+            const mSaved = document.getElementById('reportTotalSaved');
+            const mSpent = document.getElementById('reportTotalSpent');
             
-            historyList.innerHTML = '';
-            
-            let totalSaved = 0;
-            let totalSpent = 0;
-
-            if (state.history.length === 0) {
-                historyList.innerHTML = `<div class="text-center py-10 text-gray-400">No history logged yet.<br><span class="text-[10px]">History is created when you click "End Day".</span></div>`;
-            }
+            list.innerHTML = '';
+            let tSMonth = 0, tPMonth = 0;
+            let tSWeek = 0, tPWeek = 0;
+            const sevenDaysAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
 
             state.history.forEach(item => {
-                totalSaved += item.saved;
-                totalSpent += item.spent;
-
+                tSMonth += item.saved;
+                tPMonth += item.spent;
+                if (item.timestamp >= sevenDaysAgo) {
+                    tSWeek += item.saved;
+                    tPWeek += item.spent;
+                }
                 const row = document.createElement('div');
                 row.className = 'flex justify-between items-center p-3 bg-white border border-gray-100 rounded-xl';
-                row.innerHTML = `
-                    <div class="flex flex-col">
-                        <span class="text-xs font-bold text-gray-800">${item.date}</span>
-                        <span class="text-[10px] text-gray-400 uppercase">Daily Record</span>
-                    </div>
-                    <div class="flex gap-4 text-right">
-                        <div>
-                            <p class="text-[9px] text-gray-400 uppercase font-bold">Spent</p>
-                            <p class="text-xs font-bold text-red-500">₱${item.spent.toFixed(2)}</p>
-                        </div>
-                        <div>
-                            <p class="text-[9px] text-blue-400 uppercase font-bold">Saved</p>
-                            <p class="text-xs font-bold text-blue-600">₱${item.saved.toFixed(2)}</p>
-                        </div>
-                    </div>
-                `;
-                historyList.appendChild(row);
+                row.innerHTML = `<div class='flex flex-col'><span class='text-xs font-bold text-gray-800'>${item.date}</span></div><div class='flex gap-4 text-right'><div><p class='text-[9px] uppercase font-bold text-red-400'>Spent</p><p class='text-xs font-bold text-red-500'>₱${item.spent.toFixed(2)}</p></div><div><p class='text-[9px] uppercase font-bold text-blue-400'>Saved</p><p class='text-xs font-bold text-blue-600'>₱${item.saved.toFixed(2)}</p></div></div>`;
+                list.appendChild(row);
             });
 
-            totalSavedEl.innerText = `₱${totalSaved.toLocaleString('en-PH', {minimumFractionDigits: 2})}`;
-            totalSpentEl.innerText = `₱${totalSpent.toLocaleString('en-PH', {minimumFractionDigits: 2})}`;
+            wSaved.innerText = `₱${tSWeek.toLocaleString('en-PH', {minimumFractionDigits: 2})}`;
+            wSpent.innerText = `₱${tPWeek.toLocaleString('en-PH', {minimumFractionDigits: 2})}`;
+            mSaved.innerText = `₱${tSMonth.toLocaleString('en-PH', {minimumFractionDigits: 2})}`;
+            mSpent.innerText = `₱${tPMonth.toLocaleString('en-PH', {minimumFractionDigits: 2})}`;
+            if (state.history.length === 0) list.innerHTML = `<div class="text-center py-10 text-gray-400 text-sm">No history yet.</div>`;
         }
 
         function render() {
             const totalSpent = state.expenses.reduce((sum, e) => sum + e.amount, 0);
             const remaining = state.dailyBudget - totalSpent;
-
             document.getElementById('totalSpent').innerText = `₱${totalSpent.toLocaleString('en-PH', {minimumFractionDigits: 2})}`;
             document.getElementById('remainingBudget').innerText = `₱${remaining.toLocaleString('en-PH', {minimumFractionDigits: 2})}`;
             document.getElementById('pocketBalance').innerText = `₱${state.pocketEnvelope.toLocaleString('en-PH', {minimumFractionDigits: 2})}`;
             document.getElementById('budgetLabel').innerText = `Food & Daily Budget (Auto-set to ₱${state.autoSetAmount})`;
             
-            if (state.dailyBudget > 0) {
-                document.getElementById('dailyLimitInput').placeholder = state.dailyBudget.toFixed(2);
-            }
+            // Render the current budget value directly to the input
+            const budgetInput = document.getElementById('dailyLimitInput');
+            budgetInput.value = state.dailyBudget.toFixed(2);
 
             const list = document.getElementById('expenseList');
-            list.innerHTML = '';
-
-            if (state.expenses.length === 0) {
-                list.innerHTML = `<div class="text-center py-8 text-gray-400 text-sm">No expenses yet today</div>`;
-            }
-
+            list.innerHTML = state.expenses.length ? '' : `<div class='text-center py-8 text-gray-400 text-sm'>No expenses today</div>`;
             state.expenses.forEach(e => {
                 const item = document.createElement('div');
                 item.className = 'glass-card p-4 rounded-xl flex justify-between items-center animate-pop';
-                item.innerHTML = `
-                    <div class="flex flex-col">
-                        <span class="font-bold text-gray-800">${e.name}</span>
-                        <span class="text-[10px] text-gray-400 uppercase font-bold">${e.time}</span>
-                    </div>
-                    <div class="flex items-center gap-4">
-                        <span class="font-bold text-gray-700">₱${e.amount.toFixed(2)}</span>
-                        <button onclick="deleteExpense(${e.id})" class="text-gray-300 hover:text-red-500 transition-colors">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
-                            </svg>
-                        </button>
-                    </div>
-                `;
+                item.innerHTML = `<div class='flex flex-col'><span class='font-bold text-gray-800'>${e.name}</span><span class='text-[10px] text-gray-400 uppercase font-bold'>${e.time}</span></div><div class='flex items-center gap-4'><span class='font-bold text-gray-700'>₱${e.amount.toFixed(2)}</span><button onclick='deleteExpense(${e.id})' class='text-gray-300 hover:text-red-500 transition-colors'>×</button></div>`;
                 list.appendChild(item);
             });
         }
     </script>
 </body>
 </html>
+
+```
