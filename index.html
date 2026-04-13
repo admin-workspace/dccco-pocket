@@ -166,7 +166,7 @@
     <!-- Settings Sidebar -->
     <div id="settingsMenu" class="fixed inset-0 z-50 hidden">
         <div class="modal-overlay absolute inset-0" onclick="toggleSettings()"></div>
-        <div class="absolute left-0 top-0 bottom-0 w-80 bg-white shadow-2xl flex flex-col animate-pop">
+        <div id="settingsPanel" class="absolute left-0 top-0 bottom-0 w-80 bg-white shadow-2xl flex flex-col transform -translate-x-full transition-transform duration-300">
             <div class="p-6 flex justify-between items-center border-b border-gray-50">
                 <h2 class="text-xl font-bold text-gray-800">Settings</h2>
                 <button onclick="toggleSettings()" class="p-2 text-gray-400 hover:text-gray-600">
@@ -361,9 +361,25 @@
 
         function toggleSettings() {
             const menu = document.getElementById('settingsMenu');
-            menu.classList.toggle('hidden');
-            if (!menu.classList.contains('hidden')) {
+            const panel = document.getElementById('settingsPanel');
+            
+            if (menu.classList.contains('hidden')) {
+                // Open menu
+                menu.classList.remove('hidden');
+                // Small delay ensures display:block applies before the slide transition starts
+                setTimeout(() => {
+                    panel.classList.remove('-translate-x-full');
+                    panel.classList.add('translate-x-0');
+                }, 10);
                 document.getElementById('settingAutoBudget').value = state.autoSetAmount;
+            } else {
+                // Close menu
+                panel.classList.remove('translate-x-0');
+                panel.classList.add('-translate-x-full');
+                // Wait for the slide-out animation to finish before hiding the container
+                setTimeout(() => {
+                    menu.classList.add('hidden');
+                }, 300);
             }
         }
 
