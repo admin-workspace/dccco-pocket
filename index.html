@@ -92,7 +92,7 @@
             <!-- Left Side: Spending Controls -->
             <div class="space-y-6">
                 <section class="glass-card p-6 rounded-2xl shadow-sm animate-pop">
-                    <label class="block text-sm font-semibold text-gray-600 mb-2 uppercase tracking-wider" id="budgetLabel">Food & Daily Budget (Auto-set to ₱250)</label>
+                    <label class="block text-sm font-semibold text-gray-600 mb-2 uppercase tracking-wider" id="budgetLabel">Food & Daily Budget</label>
                     <div class="flex items-center gap-3">
                         <span class="text-2xl font-bold text-gray-400">₱</span>
                         <input type="number" id="dailyLimitInput" placeholder="250.00" 
@@ -146,6 +146,9 @@
                             </button>
                             <button onclick="clearPocket()" class="bg-red-500/40 hover:bg-red-500/60 px-4 py-2 rounded-lg text-sm font-semibold transition-all">
                                 Weekly Deposit Completed
+                            </button>
+                            <button onclick="showAddExtraModal()" class="bg-green-500/40 hover:bg-green-500/60 px-4 py-2 rounded-lg text-sm font-semibold transition-all">
+                                + Extra Money
                             </button>
                         </div>
                     </div>
@@ -202,12 +205,12 @@
                 </div>
 
                 <div class="pt-4 pb-12">
-                    <button onclick="resetAllData()" class="w-full border border-red-100 text-red-500 py-3 rounded-xl font-bold hover:bg-red-50 transition-all">Reset All App Data</button>
+                    <button onclick="showResetModal()" class="w-full border border-red-100 text-red-500 py-3 rounded-xl font-bold hover:bg-red-50 transition-all">Reset All App Data</button>
                 </div>
             </div>
 
             <div class="p-6 text-center border-t border-gray-50 bg-gray-50/50">
-                <p class="text-xs text-gray-400">DCCCO Pocket v1.6.4 (PWA)</p>
+                <p class="text-xs text-gray-400">DCCCO Pocket v1.6.5 (PWA)</p>
             </div>
         </div>
     </div>
@@ -273,10 +276,47 @@
         </div>
     </div>
 
+    <!-- Reset Confirmation Modal -->
+    <div id="resetModal" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-4">
+        <div class="modal-overlay absolute inset-0"></div>
+        <div class="glass-card w-full max-w-sm p-8 rounded-3xl shadow-2xl animate-pop relative z-10 text-center">
+            <div class="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+            </div>
+            <h3 class="text-xl font-bold text-gray-800 mb-2">Reset App Data?</h3>
+            <p class="text-sm text-gray-500 mb-8">This will permanently delete your budget settings, expense history, and pocket savings. This cannot be undone.</p>
+            <div class="flex flex-col gap-3">
+                <button onclick="proceedWithReset()" class="w-full bg-red-500 text-white py-4 rounded-2xl font-bold active:scale-95 transition-all">Yes, Reset Everything</button>
+                <button onclick="hideResetModal()" class="w-full bg-gray-100 text-gray-600 py-4 rounded-2xl font-bold active:scale-95 transition-all">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Extra Money Modal -->
+    <div id="addExtraModal" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-4">
+        <div class="modal-overlay absolute inset-0" onclick="hideAddExtraModal()"></div>
+        <div class="glass-card w-full max-w-sm p-8 rounded-3xl shadow-2xl animate-pop relative z-10 text-center">
+            <div class="w-16 h-16 bg-green-50 text-green-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+            </div>
+            <h3 class="text-xl font-bold text-gray-800 mb-2">Add Extra Money</h3>
+            <p class="text-sm text-gray-500 mb-6">Add forgotten money directly to your DCCCO Pocket.</p>
+            <input type="number" id="extraAmountInput" placeholder="Amount (₱)" class="w-full p-4 rounded-xl bg-gray-50 border border-gray-100 focus:ring-2 focus:ring-green-500 outline-none mb-6 text-center text-lg font-bold">
+            <div class="flex flex-col gap-3">
+                <button onclick="submitExtraMoney()" class="w-full bg-green-500 text-white py-4 rounded-2xl font-bold active:scale-95 transition-all">Add to Pocket</button>
+                <button onclick="hideAddExtraModal()" class="w-full bg-gray-100 text-gray-600 py-4 rounded-2xl font-bold active:scale-95 transition-all">Cancel</button>
+            </div>
+        </div>
+    </div>
+
     <div id="messageBox" class="fixed bottom-10 left-1/2 -translate-x-1/2 bg-gray-900 text-white px-6 py-3 rounded-full text-sm font-medium shadow-2xl opacity-0 pointer-events-none transition-all duration-300 z-50"></div>
 
     <script>
-        // PWA Service Worker (Blob Registration)
+        // PWA Service Worker
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', function() {
                 const swCode = `
@@ -366,7 +406,6 @@
             if (menu.classList.contains('hidden')) {
                 // Open menu
                 menu.classList.remove('hidden');
-                // Small delay ensures display:block applies before the slide transition starts
                 setTimeout(() => {
                     panel.classList.remove('-translate-x-full');
                     panel.classList.add('translate-x-0');
@@ -376,7 +415,6 @@
                 // Close menu
                 panel.classList.remove('translate-x-0');
                 panel.classList.add('-translate-x-full');
-                // Wait for the slide-out animation to finish before hiding the container
                 setTimeout(() => {
                     menu.classList.add('hidden');
                 }, 300);
@@ -431,10 +469,50 @@
             }
         }
 
-        function resetAllData() {
-            if (confirm("Delete all data and history?")) {
-                localStorage.removeItem('dccco_budget_data');
-                location.reload();
+        function showResetModal() {
+            document.getElementById('resetModal').classList.remove('hidden');
+            document.getElementById('settingsMenu').classList.add('hidden');
+        }
+
+        function hideResetModal() {
+            document.getElementById('resetModal').classList.add('hidden');
+        }
+
+        function proceedWithReset() {
+            localStorage.removeItem('dccco_budget_data');
+            location.reload();
+        }
+
+        function showAddExtraModal() {
+            document.getElementById('addExtraModal').classList.remove('hidden');
+            document.getElementById('extraAmountInput').value = '';
+        }
+
+        function hideAddExtraModal() {
+            document.getElementById('addExtraModal').classList.add('hidden');
+        }
+
+        function submitExtraMoney() {
+            const amount = parseFloat(document.getElementById('extraAmountInput').value);
+            if (amount > 0) {
+                state.pocketEnvelope += amount;
+                
+                const record = {
+                    date: new Date().toLocaleDateString('en-PH', { month: 'short', day: 'numeric' }) + " (Extra)",
+                    spent: 0,
+                    saved: amount,
+                    id: Date.now(),
+                    timestamp: Date.now()
+                };
+                state.history.unshift(record);
+                if (state.history.length > 30) state.history.pop();
+                
+                saveData();
+                render();
+                hideAddExtraModal();
+                showMessage(`₱${amount.toFixed(2)} added to Pocket!`);
+            } else {
+                showMessage("Please enter a valid amount.");
             }
         }
 
@@ -537,6 +615,11 @@
             document.getElementById('remainingBudget').innerText = `₱${remaining.toLocaleString('en-PH', {minimumFractionDigits: 2})}`;
             document.getElementById('pocketBalance').innerText = `₱${state.pocketEnvelope.toLocaleString('en-PH', {minimumFractionDigits: 2})}`;
             document.getElementById('budgetLabel').innerText = `Food & Daily Budget (Auto-set to ₱${state.autoSetAmount})`;
+            
+            // Render the current budget value directly to the input
+            const budgetInput = document.getElementById('dailyLimitInput');
+            budgetInput.value = state.dailyBudget.toFixed(2);
+
             const list = document.getElementById('expenseList');
             list.innerHTML = state.expenses.length ? '' : `<div class='text-center py-8 text-gray-400 text-sm'>No expenses today</div>`;
             state.expenses.forEach(e => {
